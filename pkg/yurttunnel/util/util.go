@@ -32,8 +32,8 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/profile"
-	"yurt-tunnel/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/profile"
+	"yurt-tunnel-x/pkg/projectinfo"
 )
 
 const (

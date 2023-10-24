@@ -32,9 +32,9 @@ import (
 	anpserver "sigs.k8s.io/apiserver-network-proxy/pkg/server"
 	anpagent "sigs.k8s.io/apiserver-network-proxy/proto/agent"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	hw "yurt-tunnel/pkg/yurttunnel/handlerwrapper"
-	wh "yurt-tunnel/pkg/yurttunnel/handlerwrapper/wraphandler"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	hw "yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
+	wh "yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/wraphandler"
 )
 
 // anpTunnelServer implements the TunnelServer interface using the

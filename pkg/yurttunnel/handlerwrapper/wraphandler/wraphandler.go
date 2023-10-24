@@ -21,10 +21,10 @@ import (
 
 	"k8s.io/klog/v2"
 
-	hw "yurt-tunnel/pkg/yurttunnel/handlerwrapper"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/initializer"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/localhostproxy"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/tracerequest"
+	hw "yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/initializer"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/localhostproxy"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/tracerequest"
 )
 
 func InitHandlerWrappers(mi initializer.MiddlewareInitializer, isIPv6 bool) (hw.HandlerWrappers, error) {

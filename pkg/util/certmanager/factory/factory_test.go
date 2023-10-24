@@ -28,9 +28,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/certmanager/store"
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/certmanager/store"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 const (

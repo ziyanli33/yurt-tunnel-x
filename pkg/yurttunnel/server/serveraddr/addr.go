@@ -30,9 +30,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/projectinfo"
-	utilip "yurt-tunnel/pkg/util/ip"
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/projectinfo"
+	utilip "yurt-tunnel-x/pkg/util/ip"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 // GetServerAddr gets the service address that exposes the tunnel server for

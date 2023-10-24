@@ -18,7 +18,10 @@ package app
 
 import (
 	"context"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"fmt"
+	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -31,21 +34,20 @@ import (
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
-
-	"yurt-tunnel/cmd/yurt-tunnel-server/app/config"
-	"yurt-tunnel/cmd/yurt-tunnel-server/app/options"
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/certmanager"
-	certfactory "yurt-tunnel/pkg/util/certmanager/factory"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/initializer"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/wraphandler"
-	"yurt-tunnel/pkg/yurttunnel/informers"
-	"yurt-tunnel/pkg/yurttunnel/server"
-	"yurt-tunnel/pkg/yurttunnel/server/serveraddr"
-	"yurt-tunnel/pkg/yurttunnel/trafficforward/dns"
-	"yurt-tunnel/pkg/yurttunnel/trafficforward/iptables"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/cmd/yurt-tunnel-server/app/config"
+	"yurt-tunnel-x/cmd/yurt-tunnel-server/app/options"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/certmanager"
+	certfactory "yurt-tunnel-x/pkg/util/certmanager/factory"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/initializer"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/wraphandler"
+	"yurt-tunnel-x/pkg/yurttunnel/informers"
+	"yurt-tunnel-x/pkg/yurttunnel/server"
+	"yurt-tunnel-x/pkg/yurttunnel/server/serveraddr"
+	"yurt-tunnel-x/pkg/yurttunnel/trafficforward/dns"
+	"yurt-tunnel-x/pkg/yurttunnel/trafficforward/iptables"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 // NewYurttunnelServerCommand creates a new yurttunnel-server command
@@ -70,8 +72,14 @@ func NewYurttunnelServerCommand(stopCh <-chan struct{}) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := Run(cfg.Complete(), stopCh); err != nil {
-				return err
+			if cfg.NoCloudRootCACert != nil {
+				if err := RunNoCloud(cfg.Complete(), stopCh); err != nil {
+					return err
+				}
+			} else {
+				if err := Run(cfg.Complete(), stopCh); err != nil {
+					return err
+				}
 			}
 			return nil
 		},
@@ -81,6 +89,52 @@ func NewYurttunnelServerCommand(stopCh <-chan struct{}) *cobra.Command {
 	serverOptions.AddFlags(cmd.Flags())
 
 	return cmd
+}
+
+func RunNoCloud(cfg *config.CompletedConfig, stopCh <-chan struct{}) error {
+	serverCertTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(1658),
+		Subject: pkix.Name{
+			CommonName:   "tunnel-server",
+			Organization: []string{constants.YurtTunnelCSROrg},
+		},
+		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		NotBefore:   time.Now(),
+		NotAfter:    time.Now().AddDate(1, 0, 0),
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:    x509.KeyUsageDigitalSignature,
+	}
+	tlsCfg, err := certmanager.GenLocalTLSConfigUseCertAndKey(serverCertTemplate, cfg.RootCertPool, cfg.NoCloudRootCACert, cfg.NoCloudRootCAKey, true)
+	if err != nil {
+		return err
+	}
+
+	proxyClientTlsCfg, err := certmanager.GenLocalTLSConfigUseCertAndKey(serverCertTemplate, cfg.RootCertPool, cfg.NoCloudRootCACert, cfg.NoCloudRootCAKey, false)
+	if err != nil {
+		return err
+	}
+
+	// start the server
+	ts := server.NewTunnelServer(
+		cfg.EgressSelectorEnabled,
+		cfg.InterceptorServerUDSFile,
+		cfg.ListenAddrForMaster,
+		cfg.ListenInsecureAddrForMaster,
+		cfg.ListenAddrForAgent,
+		cfg.ServerCount,
+		tlsCfg,
+		proxyClientTlsCfg,
+		nil,
+		cfg.ProxyStrategy)
+	if err := ts.Run(); err != nil {
+		return err
+	}
+
+	// start meta server
+	util.RunMetaServer(cfg.ListenMetaAddr)
+
+	<-stopCh
+	return nil
 }
 
 // run starts the yurttunel-server
@@ -177,12 +231,12 @@ func Run(cfg *config.CompletedConfig, stopCh <-chan struct{}) error {
 	}, stopCh)
 
 	// 6. generate the TLS configuration based on the latest certificate
-	tlsCfg, err := certmanager.GenTLSConfigUseCurrentCertAndCertPool(serverCertMgr.Current, cfg.RootCert, "server")
+	tlsCfg, err := certmanager.GenTLSConfigUseCurrentCertAndCertPool(serverCertMgr.Current, cfg.RootCertPool, "server")
 	if err != nil {
 		return err
 	}
 
-	proxyClientTlsCfg, err := certmanager.GenTLSConfigUseCurrentCertAndCertPool(tunnelProxyCertMgr.Current, cfg.RootCert, "client")
+	proxyClientTlsCfg, err := certmanager.GenTLSConfigUseCurrentCertAndCertPool(tunnelProxyCertMgr.Current, cfg.RootCertPool, "client")
 	if err != nil {
 		return err
 	}

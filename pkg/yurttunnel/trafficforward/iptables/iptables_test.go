@@ -31,9 +31,9 @@ import (
 	"k8s.io/utils/exec"
 	fakeexec "k8s.io/utils/exec/testing"
 
-	"yurt-tunnel/pkg/util/iptables"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/util/iptables"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 var (

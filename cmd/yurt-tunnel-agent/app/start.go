@@ -17,7 +17,10 @@ limitations under the License.
 package app
 
 import (
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"fmt"
+	"math/big"
 	"net"
 	"os"
 	"time"
@@ -28,15 +31,15 @@ import (
 	"k8s.io/client-go/util/certificate"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/cmd/yurt-tunnel-agent/app/config"
-	"yurt-tunnel/cmd/yurt-tunnel-agent/app/options"
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/certmanager"
-	certfactory "yurt-tunnel/pkg/util/certmanager/factory"
-	"yurt-tunnel/pkg/yurttunnel/agent"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/server/serveraddr"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/cmd/yurt-tunnel-agent/app/config"
+	"yurt-tunnel-x/cmd/yurt-tunnel-agent/app/options"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/certmanager"
+	certfactory "yurt-tunnel-x/pkg/util/certmanager/factory"
+	"yurt-tunnel-x/pkg/yurttunnel/agent"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/server/serveraddr"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 // NewYurttunnelAgentCommand creates a new yurttunnel-agent command
@@ -60,8 +63,14 @@ func NewYurttunnelAgentCommand(stopCh <-chan struct{}) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := Run(cfg.Complete(), stopCh); err != nil {
-				return err
+			if cfg.NoCloudRootCACert != nil {
+				if err := RunNoCloud(cfg.Complete(), stopCh); err != nil {
+					return err
+				}
+			} else {
+				if err := Run(cfg.Complete(), stopCh); err != nil {
+					return err
+				}
 			}
 			return nil
 		},
@@ -70,6 +79,44 @@ func NewYurttunnelAgentCommand(stopCh <-chan struct{}) *cobra.Command {
 
 	agentOptions.AddFlags(cmd.Flags())
 	return cmd
+}
+
+func RunNoCloud(cfg *config.CompletedConfig, stopCh <-chan struct{}) error {
+	var (
+		err error
+	)
+
+	// 1. get the address of the yurttunnel-server
+	klog.Infof("%s address: %s", projectinfo.GetServerName(), cfg.TunnelServerAddr)
+
+	serverCertTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(1659),
+		Subject: pkix.Name{
+			CommonName:   constants.YurtTunnelAgentCSRCN,
+			Organization: []string{constants.YurtTunnelCSROrg},
+		},
+		IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
+		DNSNames:    []string{cfg.NodeName},
+		NotBefore:   time.Now(),
+		NotAfter:    time.Now().AddDate(1, 0, 0),
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:    x509.KeyUsageDigitalSignature,
+	}
+	// 3. generate a TLS configuration for securing the connection to server
+	tlsCfg, err := certmanager.GenLocalTLSConfigUseCertAndKey(serverCertTemplate, cfg.RootCertPool, cfg.NoCloudRootCACert, cfg.NoCloudRootCAKey, false)
+	if err != nil {
+		return err
+	}
+
+	// 4. start the yurttunnel-agent
+	ta := agent.NewTunnelAgent(tlsCfg, cfg.TunnelServerAddr, cfg.NodeName, cfg.AgentIdentifiers)
+	ta.Run(stopCh)
+
+	// 5. start meta server
+	util.RunMetaServer(cfg.AgentMetaAddr)
+
+	<-stopCh
+	return nil
 }
 
 // Run starts the yurttunel-agent

@@ -32,9 +32,9 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	hw "yurt-tunnel/pkg/yurttunnel/handlerwrapper"
-	"yurt-tunnel/pkg/yurttunnel/server/metrics"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	hw "yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/server/metrics"
 )
 
 var (

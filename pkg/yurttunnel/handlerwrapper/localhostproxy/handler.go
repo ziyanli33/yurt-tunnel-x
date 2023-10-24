@@ -34,11 +34,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/projectinfo"
-	utilip "yurt-tunnel/pkg/util/ip"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	hw "yurt-tunnel/pkg/yurttunnel/handlerwrapper"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/projectinfo"
+	utilip "yurt-tunnel-x/pkg/util/ip"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	hw "yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 // localHostProxyMiddleware modify request for requests from cloud can access localhost of edge node.

@@ -24,7 +24,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
 )
 
 const (

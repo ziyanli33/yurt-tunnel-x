@@ -17,6 +17,7 @@ limitations under the License.
 package config
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"fmt"
 	"net"
@@ -24,9 +25,9 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/iptables"
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/iptables"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 // Config is the main context object for yurttunel-server
@@ -44,7 +45,9 @@ type Config struct {
 	ListenAddrForMaster         string
 	ListenInsecureAddrForMaster string
 	ListenMetaAddr              string
-	RootCert                    *x509.CertPool
+	NoCloudRootCACert           *x509.Certificate
+	NoCloudRootCAKey            *rsa.PrivateKey
+	RootCertPool                *x509.CertPool
 	Client                      kubernetes.Interface
 	SharedInformerFactory       informers.SharedInformerFactory
 	ServerCount                 int

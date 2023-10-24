@@ -33,7 +33,7 @@ import (
 	"k8s.io/apiserver/pkg/util/wsstream"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 var (

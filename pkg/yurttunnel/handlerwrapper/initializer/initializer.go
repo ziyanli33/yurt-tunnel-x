@@ -19,7 +19,7 @@ package initializer
 import (
 	"k8s.io/client-go/informers"
 
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
 )
 
 // WantsSharedInformerFactory is an interface for setting SharedInformerFactory

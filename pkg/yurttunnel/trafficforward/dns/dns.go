@@ -44,9 +44,9 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 const (

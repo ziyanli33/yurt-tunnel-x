@@ -23,7 +23,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"yurt-tunnel/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/projectinfo"
 )
 
 func isEdgeNode(node *corev1.Node) bool {

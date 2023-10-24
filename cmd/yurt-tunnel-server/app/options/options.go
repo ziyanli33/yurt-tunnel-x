@@ -28,17 +28,19 @@ import (
 	utilnet "k8s.io/utils/net"
 	"sigs.k8s.io/apiserver-network-proxy/pkg/server"
 
-	"yurt-tunnel/cmd/yurt-tunnel-server/app/config"
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/certmanager"
-	utilip "yurt-tunnel/pkg/util/ip"
-	"yurt-tunnel/pkg/util/iptables"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	kubeutil "yurt-tunnel/pkg/yurttunnel/kubernetes"
+	"yurt-tunnel-x/cmd/yurt-tunnel-server/app/config"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/certmanager"
+	utilip "yurt-tunnel-x/pkg/util/ip"
+	"yurt-tunnel-x/pkg/util/iptables"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	kubeutil "yurt-tunnel-x/pkg/yurttunnel/kubernetes"
 )
 
 // ServerOptions has the information that required by the yurttunel-server
 type ServerOptions struct {
+	NoCloudCACert          string
+	NoCloudCAKey           string
 	KubeConfig             string
 	BindAddr               string
 	InsecureBindAddr       string
@@ -92,6 +94,8 @@ func (o *ServerOptions) Validate() error {
 // AddFlags returns flags for a specific yurttunnel-agent by section name
 func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&o.Version, "version", o.Version, fmt.Sprintf("print the version information of the %s.", projectinfo.GetServerName()))
+	fs.StringVar(&o.NoCloudCACert, "no-cloud-ca-cert", o.NoCloudCACert, "path to the CA cert file if not using Kubernetes. DNS and iptables sync will be disabled. The private key file must also be provided.")
+	fs.StringVar(&o.NoCloudCAKey, "no-cloud-ca-key", o.NoCloudCAKey, "path to the CA key file if not using Kubernetes. DNS and iptables sync will be disabled. The cert file must also be provided.")
 	fs.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "path to the kubeconfig file.")
 	fs.StringVar(&o.BindAddr, "bind-address", o.BindAddr, fmt.Sprintf("the ip address on which the %s will listen for --secure-port or --tunnel-agent-connect-port port.", projectinfo.GetServerName()))
 	fs.StringVar(&o.InsecureBindAddr, "insecure-bind-address", o.InsecureBindAddr, fmt.Sprintf("the ip address on which the %s will listen for --insecure-port port.", projectinfo.GetServerName()))
@@ -150,20 +154,31 @@ func (o *ServerOptions) Config() (*config.Config, error) {
 	cfg.ListenAddrForMaster = net.JoinHostPort(o.BindAddr, o.SecurePort)
 	cfg.ListenInsecureAddrForMaster = net.JoinHostPort(o.InsecureBindAddr, o.InsecurePort)
 	cfg.ListenMetaAddr = net.JoinHostPort(o.InsecureBindAddr, o.MetaPort)
-	cfg.RootCert, err = certmanager.GenRootCertPool(o.KubeConfig, constants.YurttunnelCAFile)
-	if err != nil {
-		return nil, fmt.Errorf("fail to generate the rootCertPool: %w", err)
-	}
+	if o.NoCloudCACert != "" && o.NoCloudCAKey != "" {
+		cfg.NoCloudRootCACert, cfg.RootCertPool, err = certmanager.GenCertAndPoolUseCA(o.NoCloudCACert)
+		if err != nil {
+			return nil, fmt.Errorf("fail to generate the rootCert and rootCertPool: %w", err)
+		}
+		cfg.NoCloudRootCAKey, err = certmanager.LoadRSAKey(o.NoCloudCAKey)
+		if err != nil {
+			return nil, fmt.Errorf("fail to generate the rootKey: %w", err)
+		}
+	} else {
+		cfg.RootCertPool, err = certmanager.GenRootCertPool(o.KubeConfig, constants.YurttunnelCAFile)
+		if err != nil {
+			return nil, fmt.Errorf("fail to generate the rootCertPool: %w", err)
+		}
 
-	// function 'kubeutil.CreateClientSet' will try to create the clientset
-	// based on the in-cluster config if the kubeconfig is empty. As
-	// yurttunnel-server will run on the cloud, the in-cluster config should
-	// be available.
-	cfg.Client, err = kubeutil.CreateClientSet(o.KubeConfig)
-	if err != nil {
-		return nil, err
+		// function 'kubeutil.CreateClientSet' will try to create the clientset
+		// based on the in-cluster config if the kubeconfig is empty. As
+		// yurttunnel-server will run on the cloud, the in-cluster config should
+		// be available.
+		cfg.Client, err = kubeutil.CreateClientSet(o.KubeConfig)
+		if err != nil {
+			return nil, err
+		}
+		cfg.SharedInformerFactory = informers.NewSharedInformerFactory(cfg.Client, 24*time.Hour)
 	}
-	cfg.SharedInformerFactory = informers.NewSharedInformerFactory(cfg.Client, 24*time.Hour)
 
 	klog.Infof("yurttunnel server config: %#+v", cfg)
 	return cfg, nil

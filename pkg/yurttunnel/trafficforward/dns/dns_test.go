@@ -30,8 +30,8 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 func TestEnsureCoreDNSRecordConfigMap(t *testing.T) {

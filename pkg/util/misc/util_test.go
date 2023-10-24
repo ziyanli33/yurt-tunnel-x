@@ -20,7 +20,7 @@ import (
 	"errors"
 	"testing"
 
-	"yurt-tunnel/pkg/util/misc"
+	"yurt-tunnel-x/pkg/util/misc"
 )
 
 func TestIsNil(t *testing.T) {

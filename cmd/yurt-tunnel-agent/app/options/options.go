@@ -27,18 +27,21 @@ import (
 	"k8s.io/klog/v2"
 	utilnet "k8s.io/utils/net"
 	"sigs.k8s.io/apiserver-network-proxy/pkg/agent"
+	"yurt-tunnel-x/pkg/util/certmanager"
 
-	"yurt-tunnel/cmd/yurt-tunnel-agent/app/config"
-	"yurt-tunnel/pkg/projectinfo"
-	utilip "yurt-tunnel/pkg/util/ip"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	kubeutil "yurt-tunnel/pkg/yurttunnel/kubernetes"
+	"yurt-tunnel-x/cmd/yurt-tunnel-agent/app/config"
+	"yurt-tunnel-x/pkg/projectinfo"
+	utilip "yurt-tunnel-x/pkg/util/ip"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	kubeutil "yurt-tunnel-x/pkg/yurttunnel/kubernetes"
 )
 
 const defaultKubeconfig = "/etc/kubernetes/kubelet.conf"
 
 // AgentOptions has the information that required by the yurttunel-agent
 type AgentOptions struct {
+	NoCloudCACert    string
+	NoCloudCAKey     string
 	NodeName         string
 	NodeIP           string
 	TunnelServerAddr string
@@ -90,6 +93,8 @@ func (o *AgentOptions) Validate() error {
 // AddFlags returns flags for a specific yurttunnel-agent by section name
 func (o *AgentOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&o.Version, "version", o.Version, "print the version information.")
+	fs.StringVar(&o.NoCloudCACert, "no-cloud-ca-cert", o.NoCloudCACert, "path to the CA cert file if not using Kubernetes. The private key file must also be provided.")
+	fs.StringVar(&o.NoCloudCAKey, "no-cloud-ca-key", o.NoCloudCAKey, "path to the CA key file if not using Kubernetes. The cert file must also be provided.")
 	fs.StringVar(&o.NodeName, "node-name", o.NodeName, "The name of the edge node.")
 	fs.StringVar(&o.NodeIP, "node-ip", o.NodeIP, "The host IP of the edge node.")
 	fs.StringVar(&o.TunnelServerAddr, "tunnelserver-addr", o.TunnelServerAddr, fmt.Sprintf("The address of %s", projectinfo.GetServerName()))
@@ -147,19 +152,37 @@ func (o *AgentOptions) Config() (*config.Config, error) {
 	}
 	klog.Infof("%s is set for agent identifies", c.AgentIdentifiers)
 
-	kubeConfig := o.KubeConfig
-	if o.KubeConfig == "" && o.ApiserverAddr == "" {
-		kubeConfig = defaultKubeconfig
-		klog.Infof("neither --kube-config nor --apiserver-addr is set, will use %s as the kubeconfig", kubeConfig)
+	if o.NoCloudCACert != "" && o.NoCloudCAKey != "" {
+		if o.TunnelServerAddr == "" {
+			return nil, fmt.Errorf("tunnel server addr has to be set if not using Kubernetes")
+		}
+		if o.NodeName == "" {
+			return nil, fmt.Errorf("node name has to be set if not using Kubernetes")
+		}
+		c.NoCloudRootCACert, c.RootCertPool, err = certmanager.GenCertAndPoolUseCA(o.NoCloudCACert)
+		if err != nil {
+			return nil, fmt.Errorf("fail to generate the rootCert and rootCertPool: %w", err)
+		}
+		c.NoCloudRootCAKey, err = certmanager.LoadRSAKey(o.NoCloudCAKey)
+		if err != nil {
+			return nil, fmt.Errorf("fail to generate the rootKey: %w", err)
+		}
+	} else {
+		kubeConfig := o.KubeConfig
+		if o.KubeConfig == "" && o.ApiserverAddr == "" {
+			kubeConfig = defaultKubeconfig
+			klog.Infof("neither --kube-config nor --apiserver-addr is set, will use %s as the kubeconfig", kubeConfig)
+		}
+
+		if kubeConfig != "" {
+			klog.Infof("create the clientset based on the kubeconfig(%s).", kubeConfig)
+			c.Client, err = kubeutil.CreateClientSetKubeConfig(kubeConfig)
+			return c, err
+		}
+
+		klog.Infof("create the clientset based on the apiserver address(%s).", o.ApiserverAddr)
+		c.Client, err = kubeutil.CreateClientSetApiserverAddr(o.ApiserverAddr)
 	}
 
-	if kubeConfig != "" {
-		klog.Infof("create the clientset based on the kubeconfig(%s).", kubeConfig)
-		c.Client, err = kubeutil.CreateClientSetKubeConfig(kubeConfig)
-		return c, err
-	}
-
-	klog.Infof("create the clientset based on the apiserver address(%s).", o.ApiserverAddr)
-	c.Client, err = kubeutil.CreateClientSetApiserverAddr(o.ApiserverAddr)
 	return c, err
 }

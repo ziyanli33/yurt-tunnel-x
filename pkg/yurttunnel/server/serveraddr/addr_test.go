@@ -24,7 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 func TestGetDefaultDomainsForSvc(t *testing.T) {

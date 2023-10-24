@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/cmd/yurt-tunnel-agent/app"
-	"yurt-tunnel/pkg/projectinfo"
+	"yurt-tunnel-x/cmd/yurt-tunnel-agent/app"
+	"yurt-tunnel-x/pkg/projectinfo"
 )
 
 func main() {

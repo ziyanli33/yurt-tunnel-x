@@ -25,7 +25,7 @@ import (
 	"k8s.io/klog/v2"
 	anpagent "sigs.k8s.io/apiserver-network-proxy/pkg/agent"
 
-	"yurt-tunnel/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/projectinfo"
 )
 
 // anpTunnelAgent implements the TunnelAgent using the

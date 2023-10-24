@@ -21,7 +21,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"yurt-tunnel/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/projectinfo"
 )
 
 var (

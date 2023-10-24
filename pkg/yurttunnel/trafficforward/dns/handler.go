@@ -28,7 +28,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 func (dnsctl *coreDNSRecordController) addNode(obj interface{}) {

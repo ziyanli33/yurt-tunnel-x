@@ -31,8 +31,8 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/util/workqueue"
 
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 func TestAddNode(t *testing.T) {

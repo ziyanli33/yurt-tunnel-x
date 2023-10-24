@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"yurt-tunnel/pkg/util/iptables"
+	"yurt-tunnel-x/pkg/util/iptables"
 )
 
 const (

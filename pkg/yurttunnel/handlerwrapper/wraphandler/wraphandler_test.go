@@ -22,8 +22,8 @@ import (
 	"reflect"
 	"testing"
 
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper"
-	"yurt-tunnel/pkg/yurttunnel/handlerwrapper/initializer"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper"
+	"yurt-tunnel-x/pkg/yurttunnel/handlerwrapper/initializer"
 )
 
 const (

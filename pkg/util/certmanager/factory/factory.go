@@ -28,8 +28,8 @@ import (
 	"k8s.io/client-go/util/certificate"
 	"k8s.io/klog/v2"
 
-	"yurt-tunnel/pkg/util/certmanager/store"
-	"yurt-tunnel/pkg/util/misc"
+	"yurt-tunnel-x/pkg/util/certmanager/store"
+	"yurt-tunnel-x/pkg/util/misc"
 )
 
 type IPGetter func() ([]net.IP, error)

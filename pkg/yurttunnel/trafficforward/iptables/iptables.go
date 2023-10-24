@@ -33,11 +33,11 @@ import (
 	"k8s.io/utils/exec"
 	utilnet "k8s.io/utils/net"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/util/ip"
-	"yurt-tunnel/pkg/util/iptables"
-	"yurt-tunnel/pkg/yurttunnel/server/metrics"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/util/ip"
+	"yurt-tunnel-x/pkg/util/iptables"
+	"yurt-tunnel-x/pkg/yurttunnel/server/metrics"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 const (

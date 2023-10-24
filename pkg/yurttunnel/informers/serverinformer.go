@@ -27,9 +27,9 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/yurttunnel/constants"
-	"yurt-tunnel/pkg/yurttunnel/util"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/yurttunnel/util"
 )
 
 // RegisterInformersForTunnelServer registers shared informers that tunnel server use.

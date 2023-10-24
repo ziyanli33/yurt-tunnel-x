@@ -17,23 +17,28 @@ limitations under the License.
 package config
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"fmt"
 
 	"k8s.io/client-go/kubernetes"
 
-	"yurt-tunnel/pkg/projectinfo"
-	"yurt-tunnel/pkg/yurttunnel/constants"
+	"yurt-tunnel-x/pkg/projectinfo"
+	"yurt-tunnel-x/pkg/yurttunnel/constants"
 )
 
 // Config is the main context object for yurttunel-agent
 type Config struct {
-	NodeName         string
-	NodeIP           string
-	TunnelServerAddr string
-	Client           kubernetes.Interface
-	AgentIdentifiers string
-	AgentMetaAddr    string
-	CertDir          string
+	NoCloudRootCACert *x509.Certificate
+	NoCloudRootCAKey  *rsa.PrivateKey
+	RootCertPool      *x509.CertPool
+	NodeName          string
+	NodeIP            string
+	TunnelServerAddr  string
+	Client            kubernetes.Interface
+	AgentIdentifiers  string
+	AgentMetaAddr     string
+	CertDir           string
 }
 
 type completedConfig struct {
